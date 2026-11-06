@@ -1,58 +1,68 @@
 import { useEffect, useState } from 'react'
+import { events, isPastEvent, reviewedAt, venueFor, type Event, type Language, type Venue } from './catalog'
 
-type Language = 'en' | 'es'
-type AccessId = 'metro' | 'tupperWalk' | 'vielDrive' | 'tupperDrive'
-type Access = { id: AccessId; code: string; mode: 'walk' | 'drive'; color: string; x: number; y: number; name: Record<Language, string>; detail: Record<Language, string> }
-
-const officialUrl = 'https://www.santanderarena.cl/como-llegar-a-santander-arena'
-const accessPoints: Access[] = [
-  { id: 'metro', code: '01', mode: 'walk', color: '#d6f177', x: 75, y: 85, name: { en: "Parque O'Higgins Metro", es: "Metro Parque O'Higgins" }, detail: { en: "The venue lists Parque O'Higgins Metro as a general pedestrian approach.", es: "El recinto indica Metro Parque O'Higgins como acceso peatonal general." } },
-  { id: 'tupperWalk', code: '02', mode: 'walk', color: '#7de3d9', x: 495, y: 85, name: { en: 'Tupper Street', es: 'Calle Tupper' }, detail: { en: 'The venue also lists Tupper Street as a general pedestrian approach.', es: 'El recinto también indica calle Tupper como acceso peatonal general.' } },
-  { id: 'vielDrive', code: '03', mode: 'drive', color: '#ffb3a1', x: 75, y: 390, name: { en: 'Viel Avenue', es: 'Avenida Viel' }, detail: { en: 'Vehicle entry requires a parking ticket. Use Viel only if your ticket indicates it.', es: 'El ingreso vehicular requiere ticket de estacionamiento. Usa Viel solo si tu ticket lo indica.' } },
-  { id: 'tupperDrive', code: '04', mode: 'drive', color: '#b5b7ff', x: 495, y: 390, name: { en: 'Tupper Avenue', es: 'Avenida Tupper' }, detail: { en: 'Vehicle entry requires a parking ticket. Use Tupper only if your ticket indicates it.', es: 'El ingreso vehicular requiere ticket de estacionamiento. Usa Tupper solo si tu ticket lo indica.' } },
-]
 const copy = {
-  en: { eyebrow: 'Santander Arena · Santiago, Chile', title: 'A clearer way to arrive.', intro: 'Explore the general access options published by the venue. Choose how you plan to arrive and check the official information before your event.', diagram: 'Access diagram', diagramHelp: 'A schematic guide, not a geographic map. Select an access point here or in the list.', options: 'Explore access points', selected: 'Selected access', type: 'Access type', walk: 'Pedestrian', drive: 'Vehicle with parking ticket', note: 'Access arrangements and door opening times can change by event. Check your ticket and the venue before traveling.', visual: 'Arrival guide', list: 'Access list', design: 'Original SVG · Responsive UI · Keyboard access', footer: 'Wayfinding Lab / Independent portfolio concept', switchTo: 'Cambiar a español', official: 'Check official access information ↗', diagramLabel: 'Schematic access diagram', arena: 'SANTANDER', arena2: 'ARENA', schematic: 'NOT TO SCALE', active: 'selected' },
-  es: { eyebrow: 'Santander Arena · Santiago, Chile', title: 'Una forma más clara de llegar.', intro: 'Explora los accesos generales publicados por el recinto. Elige cómo planeas llegar y revisa la información oficial antes del evento.', diagram: 'Diagrama de accesos', diagramHelp: 'Guía esquemática, no mapa geográfico. Selecciona un acceso aquí o en la lista.', options: 'Explora los accesos', selected: 'Acceso seleccionado', type: 'Tipo de acceso', walk: 'Peatonal', drive: 'Vehículo con ticket de estacionamiento', note: 'Los accesos y horarios de apertura pueden cambiar según el evento. Revisa tu entrada y la información del recinto antes de viajar.', visual: 'Guía de llegada', list: 'Lista de accesos', design: 'SVG original · Interfaz adaptable · Acceso por teclado', footer: 'Wayfinding Lab / Concepto de portafolio independiente', switchTo: 'Switch to English', official: 'Consultar accesos oficiales ↗', diagramLabel: 'Diagrama esquemático de accesos', arena: 'SANTANDER', arena2: 'ARENA', schematic: 'NO ESTÁ A ESCALA', active: 'seleccionado' },
+  en: { eyebrow: 'Santiago, Chile · Event access atlas', title: 'Know the approach. Check the gate.', intro: 'Choose an event, compare published arrival options, and follow the source that applies to your ticket. Every guide is a dated editorial snapshot.', events: 'Choose an event', selectedEvent: 'Selected event', diagram: 'Arrival diagram', diagramHelp: 'Conceptual overview, not a street map or event gate plan.', options: 'Compare arrival options', selected: 'Selected option', source: 'Source checked', ticket: 'Event listing', guidance: 'Arrival guidance', caution: 'The event organizer or your ticket may specify a different gate, time, or approach. Check the latest official instructions before traveling.', design: '3 venues · 2 ticket platforms · Source-backed UI', footer: 'Wayfinding Lab / Independent portfolio concept', switchTo: 'Cambiar a español', schematic: 'NOT TO SCALE', past: 'Past event', upcoming: 'Scheduled' },
+  es: { eyebrow: 'Santiago, Chile · Atlas de accesos', title: 'Explora cómo llegar. Confirma tu puerta.', intro: 'Elige un evento, compara formas de llegar publicadas y consulta la fuente que corresponda a tu entrada. Cada guía es una revisión fechada.', events: 'Elige un evento', selectedEvent: 'Evento seleccionado', diagram: 'Diagrama de llegada', diagramHelp: 'Esquema conceptual; no es un mapa de calles ni de puertas del evento.', options: 'Compara formas de llegar', selected: 'Opción seleccionada', source: 'Fuente revisada', ticket: 'Ficha del evento', guidance: 'Guía de llegada', caution: 'La organización o tu entrada pueden indicar otra puerta, horario o ruta. Revisa las últimas instrucciones oficiales antes de viajar.', design: '3 recintos · 2 ticketeras · UI con fuentes', footer: 'Wayfinding Lab / Concepto de portafolio independiente', switchTo: 'Switch to English', schematic: 'NO ESTÁ A ESCALA', past: 'Evento pasado', upcoming: 'Programado' },
 } as const
 
-function AccessDiagram({ selected, onSelect, language }: { selected: AccessId; onSelect: (id: AccessId) => void; language: Language }) {
-  const t = copy[language]
-  return <svg className="venue-map" viewBox="0 0 760 600" role="group" aria-label={t.diagramLabel}>
+function AccessDiagram({ venue, selectedId, onSelect, language }: { venue: Venue; selectedId: string; onSelect: (id: string) => void; language: Language }) {
+  return <svg className="venue-map" viewBox="0 0 760 600" role="group" aria-label={`${venue.name}: ${copy[language].diagramHelp}`}>
     <defs><pattern id="dots" width="15" height="15" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#aab8b7" opacity=".35" /></pattern></defs>
     <rect width="760" height="600" rx="28" fill="url(#dots)" />
-    <path d="M230 168 L309 249 M530 168 L451 249 M230 432 L309 351 M530 432 L451 351" stroke="#c2d0c9" strokeWidth="8" strokeLinecap="round" fill="none" />
-    {accessPoints.map((point) => {
-      const isSelected = point.id === selected
-      return <g key={point.id} role="button" tabIndex={0} aria-label={`${point.name[language]}, ${point.mode === 'walk' ? t.walk : t.drive}${isSelected ? `, ${t.active}` : ''}`} aria-pressed={isSelected} className={`access-node ${isSelected ? 'is-selected' : ''}`} onClick={() => onSelect(point.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(point.id) } }}>
-        <rect x={point.x} y={point.y} width="190" height="95" rx="18" fill={isSelected ? point.color : '#fff'} stroke={isSelected ? '#243e48' : '#bdccc4'} strokeWidth={isSelected ? 4 : 2} />
-        <circle cx={point.x + 29} cy={point.y + 29} r="15" fill={point.color} stroke="#243e48" strokeWidth="1.5" />
-        <text x={point.x + 29} y={point.y + 34} textAnchor="middle" className="node-code">{point.code}</text>
-        <text x={point.x + 18} y={point.y + 70} className="node-name">{point.name[language]}</text>
+    {venue.options.map((option) => {
+      const isSelected = selectedId === option.id
+      return <g key={option.id}>
+        <path d={`M380 300 L${option.x + 95} ${option.y + 47}`} stroke="#c2d0c9" strokeWidth="8" strokeLinecap="round" />
+        <g role="button" tabIndex={0} aria-label={`${option.name[language]}${isSelected ? ', selected' : ''}`} aria-pressed={isSelected} className={`access-node ${isSelected ? 'is-selected' : ''}`} onClick={() => onSelect(option.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(option.id) } }}>
+          <rect x={option.x} y={option.y} width="190" height="95" rx="18" fill={isSelected ? option.color : '#fff'} stroke={isSelected ? '#243e48' : '#bdccc4'} strokeWidth={isSelected ? 4 : 2} />
+          <circle cx={option.x + 29} cy={option.y + 29} r="15" fill={option.color} stroke="#243e48" strokeWidth="1.5" />
+          <text x={option.x + 29} y={option.y + 34} textAnchor="middle" className="node-code">{option.code}</text>
+          <text x={option.x + 12} y={option.y + 70} className="node-name" textLength="166" lengthAdjust="spacingAndGlyphs">{option.name[language]}</text>
+        </g>
       </g>
     })}
     <circle cx="380" cy="300" r="120" fill="#213e48" stroke="#d6f177" strokeWidth="8" />
     <circle cx="380" cy="300" r="99" fill="none" stroke="#6e8f88" strokeWidth="2" strokeDasharray="4 9" />
-    <text x="380" y="288" textAnchor="middle" className="arena-name">{t.arena}</text><text x="380" y="330" textAnchor="middle" className="arena-name">{t.arena2}</text>
-    <text x="380" y="574" textAnchor="middle" className="schematic-label">{t.schematic}</text>
+    <text x="380" y="288" textAnchor="middle" className="arena-name">{venue.mark[0]}</text><text x="380" y="330" textAnchor="middle" className="arena-name">{venue.mark[1]}</text>
+    <text x="380" y="574" textAnchor="middle" className="schematic-label">{copy[language].schematic}</text>
   </svg>
+}
+
+function EventCard({ event, selected, onSelect, language }: { event: Event; selected: boolean; onSelect: () => void; language: Language }) {
+  const t = copy[language]
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' })
+  return <button className={`event-card ${selected ? 'is-selected' : ''}`} type="button" aria-pressed={selected} onClick={onSelect}>
+    <span className="event-card-top"><span>{event.dateLabel[language]}</span><span>{isPastEvent(event, today) ? t.past : t.upcoming}</span></span>
+    <strong>{event.title}</strong><span className="event-card-venue">{venueFor(event).name}</span><span className="event-card-source">{event.ticketSource} <span aria-hidden="true">↗</span></span>
+  </button>
 }
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('en')
-  const [selected, setSelected] = useState<AccessId>('metro')
-  const active = accessPoints.find((point) => point.id === selected)!
+  const [eventId, setEventId] = useState(events[0].id)
+  const [selectedId, setSelectedId] = useState(venueFor(events[0]).options[0].id)
+  const event = events.find((candidate) => candidate.id === eventId)!
+  const venue = venueFor(event)
+  const active = venue.options.find((option) => option.id === selectedId)!
   const t = copy[language]
   useEffect(() => { document.documentElement.lang = language }, [language])
+
+  function selectEvent(next: Event) {
+    setEventId(next.id)
+    setSelectedId(venueFor(next).options[0].id)
+  }
+
   return <div className="site-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark" aria-hidden="true">↗</span><span>WAY / FIND</span></div><button className="language-switch" type="button" onClick={() => setLanguage(language === 'en' ? 'es' : 'en')} aria-label={t.switchTo}>{language === 'en' ? 'EN / ES' : 'ES / EN'} <span aria-hidden="true">↗</span></button></header>
     <main>
-      <section className="hero" aria-labelledby="page-title"><div><p className="eyebrow"><span className="eyebrow-dot" />{t.eyebrow}</p><h1 id="page-title">{t.title}</h1><p className="intro">{t.intro}</p></div><div className="edition-card"><span>01 / 04</span><strong>{t.visual}</strong><small>{t.design}</small></div></section>
+      <section className="hero" aria-labelledby="page-title"><div><p className="eyebrow"><span className="eyebrow-dot" />{t.eyebrow}</p><h1 id="page-title">{t.title}</h1><p className="intro">{t.intro}</p></div><div className="edition-card"><span>01 / 03</span><strong>{t.events}</strong><small>{t.design}</small></div></section>
+      <section className="events-section" aria-labelledby="events-title"><div className="events-heading"><div><span className="section-kicker">01 / {t.selectedEvent}</span><h2 id="events-title">{t.events}</h2></div><span className="review-date">{t.source}: {reviewedAt}</span></div><div className="event-grid">{events.map((candidate) => <EventCard key={candidate.id} event={candidate} selected={candidate.id === eventId} onSelect={() => selectEvent(candidate)} language={language} />)}</div></section>
       <div className="content-grid">
-        <section className="map-panel" aria-labelledby="map-title"><div className="panel-heading"><div><span className="section-kicker">01 / {t.visual}</span><h2 id="map-title">{t.diagram}</h2></div><div className="map-compass" aria-hidden="true">↗</div></div><p className="map-help">{t.diagramHelp}</p><AccessDiagram selected={selected} onSelect={setSelected} language={language} /><div className="map-legend"><span><i className="legend-dot" />{active.name[language]}</span><span><i className="legend-route" />{t.schematic}</span></div></section>
-        <aside className="side-panel"><section className="section-picker" aria-labelledby="options-title"><div className="panel-heading"><div><span className="section-kicker">02 / {t.list}</span><h2 id="options-title">{t.options}</h2></div></div><div className="sector-list">{accessPoints.map((point) => <button type="button" key={point.id} className={`sector-option ${selected === point.id ? 'is-selected' : ''}`} aria-pressed={selected === point.id} onClick={() => setSelected(point.id)}><span className="sector-swatch" style={{ backgroundColor: point.color }} /><span className="sector-name">{point.name[language]}<small>{point.mode === 'walk' ? t.walk : t.drive}</small></span><span className="option-index">{point.code}</span></button>)}</div></section>
-          <section className="route-card" aria-label={t.selected} aria-live="polite"><span className="route-kicker">{t.selected} <span className="route-arrow">↗</span></span><h2>{active.name[language]}</h2><div className="gate-tag"><span>{t.type}</span><strong>{active.mode === 'walk' ? t.walk : t.drive}</strong></div><p>{active.detail[language]}</p><a href={officialUrl} target="_blank" rel="noreferrer" className="official-link">{t.official}</a></section></aside>
-      </div><p className="disclaimer">{t.note}</p>
+        <section className="map-panel" aria-labelledby="map-title"><div className="panel-heading"><div><span className="section-kicker">02 / {venue.name}</span><h2 id="map-title">{t.diagram}</h2></div><div className="map-compass" aria-hidden="true">↗</div></div><p className="map-help">{t.diagramHelp}</p><AccessDiagram venue={venue} selectedId={selectedId} onSelect={setSelectedId} language={language} /><div className="map-legend"><span><i className="legend-dot" />{active.name[language]}</span><span><i className="legend-route" />{t.schematic}</span></div></section>
+        <aside className="side-panel"><section className="section-picker" aria-labelledby="options-title"><div className="panel-heading"><div><span className="section-kicker">03 / {t.options}</span><h2 id="options-title">{t.options}</h2></div></div><div className="sector-list">{venue.options.map((option) => <button type="button" key={option.id} className={`sector-option ${selectedId === option.id ? 'is-selected' : ''}`} aria-pressed={selectedId === option.id} onClick={() => setSelectedId(option.id)}><span className="sector-swatch" style={{ backgroundColor: option.color }} /><span className="sector-name">{option.name[language]}</span><span className="option-index">{option.code}</span></button>)}</div></section>
+          <section className="route-card" aria-label={t.selected} aria-live="polite"><span className="route-kicker">{t.selected} <span className="route-arrow">↗</span></span><h2>{active.name[language]}</h2><p>{active.detail[language]}</p><div className="source-links"><a href={event.ticketUrl} target="_blank" rel="noreferrer" className="official-link">{t.ticket}: {event.ticketSource} ↗</a><a href={venue.sourceUrl} target="_blank" rel="noreferrer" className="official-link">{t.guidance}: {venue.sourceLabel} ↗</a></div></section></aside>
+      </div><p className="disclaimer">{t.caution}</p>
     </main><footer><span>{t.footer}</span><span>2026 · React + TypeScript</span></footer>
   </div>
 }

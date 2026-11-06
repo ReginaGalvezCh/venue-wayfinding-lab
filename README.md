@@ -1,64 +1,60 @@
-# Way / Find — Santander Arena access explorer
+# Way / Find — Santiago Event Access Atlas
 
-An independent, bilingual React and TypeScript prototype for exploring the **general arrival options** published by Santander Arena in Santiago, Chile. The SVG and interface were designed for this project. This is a portfolio concept, not an official venue service.
+An independent React + TypeScript portfolio prototype that pairs **event listings** with **published ways to approach each venue**. The interface is bilingual, keyboard accessible, and built around original SVG diagrams. It is an editorial snapshot, not an official ticketing or navigation service.
 
-![Desktop view of the access explorer](docs/desktop.png)
+![Desktop event selection](docs/atlas-desktop.png)
 
-## Why this project exists
+## The problem
 
-Crowded event arrivals are easier when an interface separates **how to reach the venue** from **where to sit**. This MVP focuses on the first question. A visitor can compare the two published pedestrian approaches and the two published vehicle approaches without assuming that a particular seating section maps to a specific entrance.
+An event listing tells you *what* and *when*. Venue guidance tells you *how to approach the site*. The exact gate may depend on the show or the ticket. Way / Find keeps those three pieces distinct so a visitor can compare options without mistaking a general venue approach for a confirmed event entrance.
 
-The venue states that general pedestrian access is via Parque O'Higgins Metro or calle Tupper. Vehicle access requires a parking ticket and uses Av. Viel or Av. Tupper according to that ticket. Opening times may vary by event. [Official arrival information](https://www.santanderarena.cl/como-llegar-a-santander-arena).
+## Event snapshot
 
-## What the prototype does
+Source review: **6 November 2026**. Dates and arrangements can change; the original listings remain the authority.
 
-- Shows four access options in an original, **not-to-scale** SVG diagram and a text list.
-- Keeps the diagram, list, and detail card synchronized when an option is selected.
-- Supports keyboard selection with Enter or Space and visible focus states.
-- Switches between English and Spanish without losing the current selection.
-- Links each selected option to the venue's official access page.
-- Works at narrow and wide viewport sizes.
+| Event | Date | Venue | Listing | Arrival source |
+| --- | --- | --- | --- | --- |
+| Foo Fighters · Take Cover Tour | 28 February 2027 | Parque Estadio Nacional | [Ticketmaster Chile](https://www.ticketmaster.cl/event/foo-fighters-live-2027-scl) | [Parque Estadio Nacional](https://parqueestadionacional.cl/como-llegar) |
+| Lollapalooza Chile 2027 | 12–14 March 2027 | Parque O'Higgins | [Ticketmaster Chile](https://www.ticketmaster.cl/event/lollapalooza-chile-2027) | [Lollapalooza Chile FAQ](https://lollapaloozacl.com/preguntas-frecuentes/) |
+| Simple Plan Chile 2027 | 8 May 2027 | Santander Arena | [PuntoTicket](https://www.puntoticket.com/simple-plan-2027) | [Santander Arena FAQ](https://www.santanderarena.cl/preguntas-frecuentes) |
 
-![Mobile view of the access explorer](docs/mobile.png)
+The catalog is deliberately small and reviewed by hand. It does not scrape ticket sellers, infer gates from seating sections, promise a route, or track a visitor's location. The diagrams are conceptual and not to scale. Option coordinates are graphic layout positions, not geographic coordinates. Venue names and access conditions come from the cited sources; artwork, layout, and SVG are original.
 
-## Scope and accuracy
+## What works
 
-The diagram is conceptual and does **not** depict the physical location of streets, gates, or paths. It does not calculate routes, read tickets, collect location data, or claim to know event-specific door assignments. The names and access conditions above are drawn from the venue's published page; the UI design, explanatory text, and SVG are original. No venue logo, seating map, photograph, or proprietary asset is copied.
+- Select one of three events to update the venue diagram, arrival choices, detail card, and source links together.
+- Select an option in the diagram or list by pointer or keyboard; both controls remain in sync.
+- Switch between English and Spanish without losing the event or option.
+- Show a dated source review and label a completed event as past. A multi-day event stays scheduled through its final day.
+- See vehicle parking conditions only where published, including the requirement to follow the parking ticket at Santander Arena.
+- Use the interface at desktop and mobile widths; the readable option list remains below the compact mobile diagram.
 
-The venue may update its access guidance. This static prototype should not be used as travel instructions without checking the official page and the ticket for a specific show.
+![Mobile event selection](docs/atlas-mobile.png)
 
-## Acceptance criteria
+## Objective acceptance criteria
 
-1. Selecting any of the four options in the list marks the corresponding SVG node as selected and updates the detail card.
-2. Selecting an SVG node with a pointer, Enter, or Space updates the list and detail card.
-3. Switching language preserves the selected option and updates the document language.
-4. Vehicle options always state that a parking ticket is required and that the ticket determines the access street.
-5. At 390, 768, and 1440 CSS px, there is no horizontal page overflow.
-6. A link to the official venue access page remains available from the detail card.
+1. Choosing each event changes the venue title, diagram nodes, option list, detail text, and both external links to that event's data.
+2. Choosing an option in the diagram changes its `aria-pressed` state and the selected list item and detail card; list selection does the same in reverse.
+3. An SVG option responds to Enter and Space. Every control has a visible keyboard focus state.
+4. Language switching updates visible copy and the document language while preserving selection.
+5. The event list shows a source review date. On 13 March 2027 Lollapalooza remains scheduled; on 15 March it is past.
+6. No diagram implies street geometry or a ticket-specific gate. The event listing and arrival guidance are separately linked.
+7. At 390, 768, and 1440 CSS px the page has no horizontal overflow.
 
-## Run locally
+## Run and verify
 
-Node.js 20.19+ is required. The project uses pnpm and includes a lockfile.
+Requires Node.js 20.19+ or 22.12+ and pnpm. The lockfile is committed.
 
 ```sh
 pnpm install
 pnpm dev
-```
-
-## Verify
-
-```sh
 pnpm lint
 pnpm test
 pnpm build
 ```
 
-The interaction tests cover synchronized selection, keyboard access, and language persistence. Build and lint checks cover the TypeScript and Vite app. The responsive layout was also inspected in a browser at the three widths above.
+The interaction tests cover event changes, synchronized selection, keyboard input, language persistence, and date boundaries. Lint and the production build were also run. The interface was inspected in a browser at desktop and mobile widths.
 
-## Repository history
+## Incremental history
 
-Commits follow Conventional Commits. The project began as a fictional venue prototype; the later `feat` commit replaces the fictional sections with sourced access options for Santander Arena. This history is intentional and makes the design decision inspectable.
-
-## Future idea
-
-An event-specific version could compare a ticket's section with that event's published seating and entry information. That needs verified, event-specific source data and a separate review before implementation. It is outside this MVP.
+The repository began as a small fictional venue study. The next commits replaced it with sourced Santander Arena guidance. This branch expands that verified interaction into a three-event atlas using Conventional Commits, with the UI and documentation in separate increments.

@@ -5,27 +5,27 @@ import App from './App'
 
 afterEach(cleanup)
 
-describe('wayfinding selection', () => {
-  test('the map and list stay in sync when a section is selected', async () => {
+describe('access explorer', () => {
+  test('the diagram and list reflect the same selection', async () => {
     render(<App />)
-    await userEvent.click(screen.getByText('East Gallery'))
-    expect(screen.getByRole('button', { name: /Section East Gallery, Gate E, selected/ }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByText('Enter at Gate E. Stay on the concourse and take the first right.')).toBeTruthy()
+    await userEvent.click(screen.getAllByRole('button', { name: /Viel Avenue/ })[1])
+    expect(screen.getByRole('button', { name: /Viel Avenue, Vehicle with parking ticket, selected/ }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText('Vehicle entry requires a parking ticket. Use Viel only if your ticket indicates it.')).toBeTruthy()
   })
 
-  test('a map section can be selected with the keyboard', () => {
+  test('the SVG choice works with the keyboard', () => {
     render(<App />)
-    const west = screen.getByRole('button', { name: /Section West Gallery, Gate W/ })
-    fireEvent.keyDown(west, { key: 'Enter' })
-    expect(west.getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByText('Enter at Gate W. Stay on the concourse and take the first left.')).toBeTruthy()
+    const tupper = screen.getByRole('button', { name: 'Tupper Street, Pedestrian' })
+    fireEvent.keyDown(tupper, { key: 'Enter' })
+    expect(tupper.getAttribute('aria-pressed')).toBe('true')
   })
 
-  test('changing language preserves the selected section', async () => {
+  test('language switching retains selection and updates the page language', async () => {
     render(<App />)
-    await userEvent.click(screen.getByText('North Terrace'))
+    await userEvent.click(screen.getAllByRole('button', { name: /Tupper Avenue/ })[1])
     await userEvent.click(screen.getByRole('button', { name: 'Cambiar a español' }))
-    expect(screen.getByRole('heading', { name: 'Terraza Norte' })).toBeTruthy()
-    expect(screen.getByText('Ingresa por la Puerta N. Sigue las señales lima hasta la terraza superior.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Avenida Tupper' })).toBeTruthy()
+    expect(screen.getByText('El ingreso vehicular requiere ticket de estacionamiento. Usa Tupper solo si tu ticket lo indica.')).toBeTruthy()
+    expect(document.documentElement.lang).toBe('es')
   })
 })

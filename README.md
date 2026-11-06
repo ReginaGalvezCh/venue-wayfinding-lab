@@ -2,6 +2,8 @@
 
 An independent React + TypeScript portfolio prototype that pairs **event listings** with **published ways to approach each venue**. The interface is bilingual, keyboard accessible, and built around original SVG diagrams. It is an editorial snapshot, not an official ticketing or navigation service.
 
+**Live demo:** [Explore Way / Find](https://way-find-venue-guide.regina-galve-9336.chatgpt.site)
+
 ![Desktop event selection](docs/atlas-desktop.png)
 
 **Portfolio task sample:** [a screenshot-grounded coding brief with a starter commit, reference implementation, and objective grading criteria](tasks/01-visual-event-atlas/README.md).
@@ -59,4 +61,4 @@ The interaction tests cover event changes, synchronized selection, keyboard inpu
 
 ## Incremental history
 
-The repository began as a small fictional venue study. The next commits replaced it with sourced Santander Arena guidance. This branch expands that verified interaction into a three-event atlas using Conventional Commits, with the UI and documentation in separate increments.
+The repository began as a small fictional venue study. Later commits replaced it with sourced Santander Arena guidance and expanded the verified interaction into a three-event atlas. The UI, tests, documentation, and hosting configuration were added in separate Conventional Commits.

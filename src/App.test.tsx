@@ -23,6 +23,10 @@ describe('event access atlas', () => {
     fireEvent.keyDown(grecia, { key: 'Enter' })
     expect(grecia.getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByText(/General park approach. The venue lists Estadio Nacional Metro/)).toBeTruthy()
+    const valdivia = screen.getByRole('button', { name: 'Pedro de Valdivia' })
+    fireEvent.keyDown(valdivia, { key: ' ' })
+    expect(valdivia.getAttribute('aria-pressed')).toBe('true')
+    expect(grecia.getAttribute('aria-pressed')).toBe('false')
   })
 
   test('language switching preserves event and option', async () => {

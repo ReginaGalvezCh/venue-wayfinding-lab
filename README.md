@@ -4,6 +4,8 @@ An independent React + TypeScript portfolio prototype that pairs **event listing
 
 ![Desktop event selection](docs/atlas-desktop.png)
 
+**Portfolio task sample:** [a screenshot-grounded coding brief with a starter commit, reference implementation, and objective grading criteria](tasks/01-visual-event-atlas/README.md).
+
 ## The problem
 
 An event listing tells you *what* and *when*. Venue guidance tells you *how to approach the site*. The exact gate may depend on the show or the ticket. Way / Find keeps those three pieces distinct so a visitor can compare options without mistaking a general venue approach for a confirmed event entrance.
